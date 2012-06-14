@@ -34,15 +34,19 @@ class TextUi:
             print ""
 
 class Smp:
-    def __init__(self, bla):
-        self.expander = bla
+    def __init__(self, expander):
+        self.expander = expander
 
         self.xlate = {}
         self.xlate['dev'] = {}
         self.xlate['sasid'] = {}
         self.xlate['loc'] = {}
 
-        if self.expander == '4:1':
+
+
+    def pretty_print(self):
+
+        if self.expander == '2:1':
             self.supermicro_sc847_e26_front()
         else:
             self.supermicro_sc847_e26_back()
@@ -313,7 +317,7 @@ class Smp:
         """
         expander = '/dev/bsg/expander-' + self.expander
         p = subprocess.Popen(['smp_discover', '--multiple', expander], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (stdoutdata, _) = p.communicate(None)
+        (stdoutdata, stderrdata) = p.communicate(None)
         for line in stdoutdata.splitlines():
             if not re.search('^ *phy.*attached', line):
                 continue
@@ -330,22 +334,42 @@ class Smp:
             self.xlate['sasid'][sas_id]['loc'] = loc
 
 
+
     def light(self, dev, on = True):
-        if not re.match('/dev', dev):
-            dev = '/dev/' + dev
-        sas_id = self.xlate['dev'][dev]['sasid']
-        loc = self.xlate['sasid'][sas_id]['loc']
-        if self.expander == '4:0':
-            exp = '/dev/bsg/4:0:11:0'
-            slot = "%02d" % (loc - 7)
-        else:
-            exp = '/dev/bsg/4:0:35:0'
-            slot = "%02d" % (loc - 11)
+        """
+        """
+        dev = '/dev/' + dev
+
         if on is True:
             cmd = 'set'
         else:
             cmd = 'clear'
-        subprocess.Popen(['sg_ses', '-D', 'Slot ' + slot, '--' + cmd + '=locate', '/dev/bsg/4:0:11:0'])
+
+        sas_id = self.xlate['dev'][dev]['sasid']
+        loc = self.xlate['sasid'][sas_id]['loc']
+
+        if self.expander == '4:0':
+            exp = '/dev/bsg/2:0:11:0'
+            slot = "%02d" % (loc - 7)
+        else:
+            exp = '/dev/bsg/2:0:35:0'
+            slot = "%02d" % (loc - 11)
+        subprocess.Popen(['sg_ses', '-D', 'Slot ' + slot, '--' + cmd + '=locate', '/dev/bsg/expander-' + self.expander])
+
+
+
+    @classmethod
+    def list_expanders(cls):
+        import os
+        entries = os.listdir('/dev/bsg/')
+        result = []
+        for entry in entries:
+            if re.match('expander-', entry):
+                result.append(entry)
+
+        return result
+
+
 
 
 
@@ -357,12 +381,15 @@ class Smp:
 
 
 
+print Smp.list_expanders()
 print "-------[Front]-------"
-sf = Smp('4:1')
+sf = Smp('2:1')
+sf.pretty_print()
 print "-------[Back]-------"
-sb = Smp('4:0')
-#sb.light('sdm', True)
+sb = Smp('2:0')
+sb.pretty_print()
 
+sf.light('sdw', True)
     #def locate(self, ):
 
 # turn on LED for slot $I on backside
