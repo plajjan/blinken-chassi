@@ -34,148 +34,154 @@ class TextUi:
             print ""
 
 class Smp:
-    def __init__(self, expander):
-        self.expander = expander
-
+    def __init__(self):
         self.xlate = {}
         self.xlate['dev'] = {}
         self.xlate['sasid'] = {}
         self.xlate['loc'] = {}
 
+        self.get_lsscsi()
+        for expander in self.list_expanders():
+            if expander == 'expander-2:1':
+                self.xlate['loc'][expander] = self.supermicro_sc847_e26_front()
+                self.xlate['loc'][expander]['side'] = 'Front'
+            else:
+                self.xlate['loc'][expander] = self.supermicro_sc847_e26_back()
+                self.xlate['loc'][expander]['side'] = 'Back'
+            self.get_smpdiscover(expander)
+
 
 
     def pretty_print(self):
 
-        if self.expander == '2:1':
-            self.supermicro_sc847_e26_front()
-        else:
-            self.supermicro_sc847_e26_back()
+        for expander in self.xlate['loc']:
+            print "------------ [ %-6s ] -------------" % self.xlate['loc'][expander]['side'] 
+            for y in xrange(0, 6):
+                for x in xrange(0, 4):
+                    found = False
+                    for l in self.xlate['loc'][expander]:
+                        loc = self.xlate['loc'][expander][l]
+                        if 'pos_y' not in loc or 'sasid' not in loc:
+                            continue
 
-        self.get_lsscsi()
-        self.get_smpdiscover()
-
-        for y in xrange(0, 6):
-            for x in xrange(0, 4):
-                found = False
-                for l in self.xlate['loc']:
-                    loc = self.xlate['loc'][l]
-                    if 'pos_y' not in loc or 'sasid' not in loc:
-                        continue
-
-                    if loc['pos_y'] == y and loc['pos_x'] == x:
-                        sas_id = self.xlate['sasid'][loc['sasid']]
-                        if 'dev' in sas_id:
-                            dev = re.sub('/dev/', '', self.xlate['sasid'][loc['sasid']]['dev'])
-                        else:
-                            dev = '--'
-                        found = True
-                        print "%-10s" % dev,
-                if not found:
-                    print "%-10s" % 'PSU',
-            print ""
+                        if loc['pos_y'] == y and loc['pos_x'] == x:
+                            sas_id = self.xlate['sasid'][loc['sasid']]
+                            if 'dev' in sas_id:
+                                dev = re.sub('/dev/', '', self.xlate['sasid'][loc['sasid']]['dev'])
+                            else:
+                                dev = '--'
+                            found = True
+                            print "%-10s" % dev,
+                    if not found:
+                        print "%-10s" % 'PSU',
+                print ""
 
 
 
 
     def supermicro_sc847_e26_back(self):
-        self.xlate['loc'][99] = {}
-        self.xlate['loc'][99]['pos_x'] = 0
-        self.xlate['loc'][99]['pos_y'] = 0
+        res = {}
 
-        self.xlate['loc'][98] = {}
-        self.xlate['loc'][98]['pos_x'] = 0
-        self.xlate['loc'][98]['pos_y'] = 1
+        res[99] = {}
+        res[99]['pos_x'] = 0
+        res[99]['pos_y'] = 0
 
-        self.xlate['loc'][97] = {}
-        self.xlate['loc'][97]['pos_x'] = 0
-        self.xlate['loc'][97]['pos_y'] = 2
+        res[98] = {}
+        res[98]['pos_x'] = 0
+        res[98]['pos_y'] = 1
 
-        self.xlate['loc'][10] = {}
-        self.xlate['loc'][10]['pos_x'] = 0
-        self.xlate['loc'][10]['pos_y'] = 3
+        res[97] = {}
+        res[97]['pos_x'] = 0
+        res[97]['pos_y'] = 2
 
-        self.xlate['loc'][9] = {}
-        self.xlate['loc'][9]['pos_x'] = 0
-        self.xlate['loc'][9]['pos_y'] = 4
+        res[10] = {}
+        res[10]['pos_x'] = 0
+        res[10]['pos_y'] = 3
 
-        self.xlate['loc'][8] = {}
-        self.xlate['loc'][8]['pos_x'] = 0
-        self.xlate['loc'][8]['pos_y'] = 5
+        res[9] = {}
+        res[9]['pos_x'] = 0
+        res[9]['pos_y'] = 4
 
-
-        self.xlate['loc'][16] = {}
-        self.xlate['loc'][16]['pos_x'] = 1
-        self.xlate['loc'][16]['pos_y'] = 0
-
-        self.xlate['loc'][15] = {}
-        self.xlate['loc'][15]['pos_x'] = 1
-        self.xlate['loc'][15]['pos_y'] = 1
-
-        self.xlate['loc'][14] = {}
-        self.xlate['loc'][14]['pos_x'] = 1
-        self.xlate['loc'][14]['pos_y'] = 2
-
-        self.xlate['loc'][13] = {}
-        self.xlate['loc'][13]['pos_x'] = 1
-        self.xlate['loc'][13]['pos_y'] = 3
-
-        self.xlate['loc'][12] = {}
-        self.xlate['loc'][12]['pos_x'] = 1
-        self.xlate['loc'][12]['pos_y'] = 4
-
-        self.xlate['loc'][11] = {}
-        self.xlate['loc'][11]['pos_x'] = 1
-        self.xlate['loc'][11]['pos_y'] = 5
+        res[8] = {}
+        res[8]['pos_x'] = 0
+        res[8]['pos_y'] = 5
 
 
-        self.xlate['loc'][22] = {}
-        self.xlate['loc'][22]['pos_x'] = 2
-        self.xlate['loc'][22]['pos_y'] = 0
+        res[16] = {}
+        res[16]['pos_x'] = 1
+        res[16]['pos_y'] = 0
 
-        self.xlate['loc'][21] = {}
-        self.xlate['loc'][21]['pos_x'] = 2
-        self.xlate['loc'][21]['pos_y'] = 1
+        res[15] = {}
+        res[15]['pos_x'] = 1
+        res[15]['pos_y'] = 1
 
-        self.xlate['loc'][20] = {}
-        self.xlate['loc'][20]['pos_x'] = 2
-        self.xlate['loc'][20]['pos_y'] = 2
+        res[14] = {}
+        res[14]['pos_x'] = 1
+        res[14]['pos_y'] = 2
 
-        self.xlate['loc'][19] = {}
-        self.xlate['loc'][19]['pos_x'] = 2
-        self.xlate['loc'][19]['pos_y'] = 3
+        res[13] = {}
+        res[13]['pos_x'] = 1
+        res[13]['pos_y'] = 3
 
-        self.xlate['loc'][18] = {}
-        self.xlate['loc'][18]['pos_x'] = 2
-        self.xlate['loc'][18]['pos_y'] = 4
+        res[12] = {}
+        res[12]['pos_x'] = 1
+        res[12]['pos_y'] = 4
 
-        self.xlate['loc'][17] = {}
-        self.xlate['loc'][17]['pos_x'] = 2
-        self.xlate['loc'][17]['pos_y'] = 5
+        res[11] = {}
+        res[11]['pos_x'] = 1
+        res[11]['pos_y'] = 5
 
 
-        self.xlate['loc'][28] = {}
-        self.xlate['loc'][28]['pos_x'] = 3
-        self.xlate['loc'][28]['pos_y'] = 0
+        res[22] = {}
+        res[22]['pos_x'] = 2
+        res[22]['pos_y'] = 0
 
-        self.xlate['loc'][27] = {}
-        self.xlate['loc'][27]['pos_x'] = 3
-        self.xlate['loc'][27]['pos_y'] = 1
+        res[21] = {}
+        res[21]['pos_x'] = 2
+        res[21]['pos_y'] = 1
 
-        self.xlate['loc'][26] = {}
-        self.xlate['loc'][26]['pos_x'] = 3
-        self.xlate['loc'][26]['pos_y'] = 2
+        res[20] = {}
+        res[20]['pos_x'] = 2
+        res[20]['pos_y'] = 2
 
-        self.xlate['loc'][25] = {}
-        self.xlate['loc'][25]['pos_x'] = 3
-        self.xlate['loc'][25]['pos_y'] = 3
+        res[19] = {}
+        res[19]['pos_x'] = 2
+        res[19]['pos_y'] = 3
 
-        self.xlate['loc'][24] = {}
-        self.xlate['loc'][24]['pos_x'] = 3
-        self.xlate['loc'][24]['pos_y'] = 4
+        res[18] = {}
+        res[18]['pos_x'] = 2
+        res[18]['pos_y'] = 4
 
-        self.xlate['loc'][23] = {}
-        self.xlate['loc'][23]['pos_x'] = 3
-        self.xlate['loc'][23]['pos_y'] = 5
+        res[17] = {}
+        res[17]['pos_x'] = 2
+        res[17]['pos_y'] = 5
+
+
+        res[28] = {}
+        res[28]['pos_x'] = 3
+        res[28]['pos_y'] = 0
+
+        res[27] = {}
+        res[27]['pos_x'] = 3
+        res[27]['pos_y'] = 1
+
+        res[26] = {}
+        res[26]['pos_x'] = 3
+        res[26]['pos_y'] = 2
+
+        res[25] = {}
+        res[25]['pos_x'] = 3
+        res[25]['pos_y'] = 3
+
+        res[24] = {}
+        res[24]['pos_x'] = 3
+        res[24]['pos_y'] = 4
+
+        res[23] = {}
+        res[23]['pos_x'] = 3
+        res[23]['pos_y'] = 5
+
+        return res
 
 
 
@@ -188,106 +194,108 @@ class Smp:
         #3  14  20  26  32
         #4  13  19  25  31
         #5  12  18  24  30
+        res = {}
+
+        res[17] = {}
+        res[17]['pos_x'] = 0
+        res[17]['pos_y'] = 0
+
+        res[16] = {}
+        res[16]['pos_x'] = 0
+        res[16]['pos_y'] = 1
+
+        res[15] = {}
+        res[15]['pos_x'] = 0
+        res[15]['pos_y'] = 2
+
+        res[14] = {}
+        res[14]['pos_x'] = 0
+        res[14]['pos_y'] = 3
+
+        res[13] = {}
+        res[13]['pos_x'] = 0
+        res[13]['pos_y'] = 4
+
+        res[12] = {}
+        res[12]['pos_x'] = 0
+        res[12]['pos_y'] = 5
 
 
-        self.xlate['loc'][17] = {}
-        self.xlate['loc'][17]['pos_x'] = 0
-        self.xlate['loc'][17]['pos_y'] = 0
+        res[23] = {}
+        res[23]['pos_x'] = 1
+        res[23]['pos_y'] = 0
 
-        self.xlate['loc'][16] = {}
-        self.xlate['loc'][16]['pos_x'] = 0
-        self.xlate['loc'][16]['pos_y'] = 1
+        res[22] = {}
+        res[22]['pos_x'] = 1
+        res[22]['pos_y'] = 1
 
-        self.xlate['loc'][15] = {}
-        self.xlate['loc'][15]['pos_x'] = 0
-        self.xlate['loc'][15]['pos_y'] = 2
+        res[21] = {}
+        res[21]['pos_x'] = 1
+        res[21]['pos_y'] = 2
 
-        self.xlate['loc'][14] = {}
-        self.xlate['loc'][14]['pos_x'] = 0
-        self.xlate['loc'][14]['pos_y'] = 3
+        res[20] = {}
+        res[20]['pos_x'] = 1
+        res[20]['pos_y'] = 3
 
-        self.xlate['loc'][13] = {}
-        self.xlate['loc'][13]['pos_x'] = 0
-        self.xlate['loc'][13]['pos_y'] = 4
+        res[19] = {}
+        res[19]['pos_x'] = 1
+        res[19]['pos_y'] = 4
 
-        self.xlate['loc'][12] = {}
-        self.xlate['loc'][12]['pos_x'] = 0
-        self.xlate['loc'][12]['pos_y'] = 5
-
-
-        self.xlate['loc'][23] = {}
-        self.xlate['loc'][23]['pos_x'] = 1
-        self.xlate['loc'][23]['pos_y'] = 0
-
-        self.xlate['loc'][22] = {}
-        self.xlate['loc'][22]['pos_x'] = 1
-        self.xlate['loc'][22]['pos_y'] = 1
-
-        self.xlate['loc'][21] = {}
-        self.xlate['loc'][21]['pos_x'] = 1
-        self.xlate['loc'][21]['pos_y'] = 2
-
-        self.xlate['loc'][20] = {}
-        self.xlate['loc'][20]['pos_x'] = 1
-        self.xlate['loc'][20]['pos_y'] = 3
-
-        self.xlate['loc'][19] = {}
-        self.xlate['loc'][19]['pos_x'] = 1
-        self.xlate['loc'][19]['pos_y'] = 4
-
-        self.xlate['loc'][18] = {}
-        self.xlate['loc'][18]['pos_x'] = 1
-        self.xlate['loc'][18]['pos_y'] = 5
+        res[18] = {}
+        res[18]['pos_x'] = 1
+        res[18]['pos_y'] = 5
 
 
-        self.xlate['loc'][29] = {}
-        self.xlate['loc'][29]['pos_x'] = 2
-        self.xlate['loc'][29]['pos_y'] = 0
+        res[29] = {}
+        res[29]['pos_x'] = 2
+        res[29]['pos_y'] = 0
 
-        self.xlate['loc'][28] = {}
-        self.xlate['loc'][28]['pos_x'] = 2
-        self.xlate['loc'][28]['pos_y'] = 1
+        res[28] = {}
+        res[28]['pos_x'] = 2
+        res[28]['pos_y'] = 1
 
-        self.xlate['loc'][27] = {}
-        self.xlate['loc'][27]['pos_x'] = 2
-        self.xlate['loc'][27]['pos_y'] = 2
+        res[27] = {}
+        res[27]['pos_x'] = 2
+        res[27]['pos_y'] = 2
 
-        self.xlate['loc'][26] = {}
-        self.xlate['loc'][26]['pos_x'] = 2
-        self.xlate['loc'][26]['pos_y'] = 3
+        res[26] = {}
+        res[26]['pos_x'] = 2
+        res[26]['pos_y'] = 3
 
-        self.xlate['loc'][25] = {}
-        self.xlate['loc'][25]['pos_x'] = 2
-        self.xlate['loc'][25]['pos_y'] = 4
+        res[25] = {}
+        res[25]['pos_x'] = 2
+        res[25]['pos_y'] = 4
 
-        self.xlate['loc'][24] = {}
-        self.xlate['loc'][24]['pos_x'] = 2
-        self.xlate['loc'][24]['pos_y'] = 5
+        res[24] = {}
+        res[24]['pos_x'] = 2
+        res[24]['pos_y'] = 5
 
 
-        self.xlate['loc'][35] = {}
-        self.xlate['loc'][35]['pos_x'] = 3
-        self.xlate['loc'][35]['pos_y'] = 0
+        res[35] = {}
+        res[35]['pos_x'] = 3
+        res[35]['pos_y'] = 0
 
-        self.xlate['loc'][34] = {}
-        self.xlate['loc'][34]['pos_x'] = 3
-        self.xlate['loc'][34]['pos_y'] = 1
+        res[34] = {}
+        res[34]['pos_x'] = 3
+        res[34]['pos_y'] = 1
 
-        self.xlate['loc'][33] = {}
-        self.xlate['loc'][33]['pos_x'] = 3
-        self.xlate['loc'][33]['pos_y'] = 2
+        res[33] = {}
+        res[33]['pos_x'] = 3
+        res[33]['pos_y'] = 2
 
-        self.xlate['loc'][32] = {}
-        self.xlate['loc'][32]['pos_x'] = 3
-        self.xlate['loc'][32]['pos_y'] = 3
+        res[32] = {}
+        res[32]['pos_x'] = 3
+        res[32]['pos_y'] = 3
 
-        self.xlate['loc'][31] = {}
-        self.xlate['loc'][31]['pos_x'] = 3
-        self.xlate['loc'][31]['pos_y'] = 4
+        res[31] = {}
+        res[31]['pos_x'] = 3
+        res[31]['pos_y'] = 4
 
-        self.xlate['loc'][30] = {}
-        self.xlate['loc'][30]['pos_x'] = 3
-        self.xlate['loc'][30]['pos_y'] = 5
+        res[30] = {}
+        res[30]['pos_x'] = 3
+        res[30]['pos_y'] = 5
+
+        return res
 
 
 
@@ -312,26 +320,31 @@ class Smp:
 
 
 
-    def get_smpdiscover(self):
+    def get_smpdiscover(self, expander):
         """ Run smpdiscover on our disk enclosures and get output
         """
-        expander = '/dev/bsg/expander-' + self.expander
-        p = subprocess.Popen(['smp_discover', '--multiple', expander], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(['smp_discover', '--multiple', '/dev/bsg/' + expander], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdoutdata, stderrdata) = p.communicate(None)
         for line in stdoutdata.splitlines():
             if not re.search('^ *phy.*attached', line):
                 continue
             data = line.split()[1]
-            loc = int(data.split(':')[0])
+            slot = int(data.split(':')[0])
             sas_id = data.split(':')[3].strip('[]')
 
-            if loc not in self.xlate['loc']:
-                self.xlate['loc'][loc] = {}
-            self.xlate['loc'][loc]['sasid'] = sas_id
+            # update location information
+            if expander not in self.xlate['loc']:
+                self.xlate['loc'][expander] = {}
 
+            if slot not in self.xlate['loc'][expander]:
+                self.xlate['loc'][expander][slot] = {}
+            self.xlate['loc'][expander][slot]['sasid'] = sas_id
+
+            # update sasid information
             if sas_id not in self.xlate['sasid']:
                 self.xlate['sasid'][sas_id] = {}
-            self.xlate['sasid'][sas_id]['loc'] = loc
+            self.xlate['sasid'][sas_id]['slot'] = slot
+            self.xlate['sasid'][sas_id]['expander'] = expander
 
 
 
@@ -346,20 +359,29 @@ class Smp:
             cmd = 'clear'
 
         sas_id = self.xlate['dev'][dev]['sasid']
-        loc = self.xlate['sasid'][sas_id]['loc']
+        expander = self.xlate['sasid'][sas_id]['expander']
+        slot = self.xlate['sasid'][sas_id]['slot']
 
-        if self.expander == '4:0':
-            exp = '/dev/bsg/2:0:11:0'
-            slot = "%02d" % (loc - 7)
+#        if self.expander == '4:0':
+#            exp = '/dev/bsg/2:0:11:0'
+#            slot = "%02d" % (loc - 7)
+#        else:
+#            exp = '/dev/bsg/2:0:35:0'
+#            slot = "%02d" % (loc - 11)
+
+        print "expander:", expander, "  slot:", slot
+        if expander == 'expander-2:1':
+            sg = '/dev/sg43'
+            slot -= 7
         else:
-            exp = '/dev/bsg/2:0:35:0'
-            slot = "%02d" % (loc - 11)
-        subprocess.Popen(['sg_ses', '-D', 'Slot ' + slot, '--' + cmd + '=locate', '/dev/bsg/expander-' + self.expander])
+            sg = '/dev/sg18'
+            slot -= 11
+        print "expander:", expander, "  slot:", slot
+        subprocess.Popen(['sg_ses', '-D', 'Slot ' + str(slot), '--' + cmd + '=locate', sg])
 
 
 
-    @classmethod
-    def list_expanders(cls):
+    def list_expanders(self):
         import os
         entries = os.listdir('/dev/bsg/')
         result = []
@@ -373,24 +395,31 @@ class Smp:
 
 
 
+if __name__ == '__main__':
+    import optparse
+    parser = optparse.OptionParser()
+    parser.add_option('--print', dest = 'pretty_print', action = 'store_true')
+    parser.add_option('--locate', dest = 'light', action = 'store_true')
+    parser.add_option('--locate-off', dest = 'light', action = 'store_false')
+
+    (options, args) = parser.parse_args()
+
+    s = Smp()
+
+    if options.pretty_print:
+        s.pretty_print()
+
+    if options.light is True:
+        for dev in args:
+            s.light(dev, True)
+
+    if options.light is False:
+        for dev in args:
+            s.light(dev, False)
 
 
 
-    def list(self):
-        pass
-
-
-
-print Smp.list_expanders()
-print "-------[Front]-------"
-sf = Smp('2:1')
-sf.pretty_print()
-print "-------[Back]-------"
-sb = Smp('2:0')
-sb.pretty_print()
-
-sf.light('sdw', True)
-    #def locate(self, ):
+#def locate(self, ):
 
 # turn on LED for slot $I on backside
 # sg_ses -D "Slot $I" --clear=locate /dev/bsg/4:0:11:0
