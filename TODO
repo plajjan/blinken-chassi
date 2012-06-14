@@ -1,0 +1,21 @@
+warn when smp_discover does not exist
+
+I had an idea about having this nifty app autodetect controllers and try to
+fingerprint them into enclosures and so forth. I do no longer believe in that
+idea as it is simply to complex and will probably not yield a very good result.
+
+Current ideas are instead along the lines of auto-detecting controllers but
+have the user manually enter what enclosures he has. A short configuration
+procedure would help to map controllers to front and back of enclosures by
+blinking all lights.
+
+At least the Supermicro SC847 is built with two LSI controllers that are
+completely independant. Connections between them are on the back of the chassi
+and how you connect them are really up to you. It is thus very difficult, if
+not impossible, to determine which one is which, unless there are hard-drives
+in the chassi. The ports used for the drives on the controllers are different
+on the backside and front of the SC847 so having a disk in a slot where they
+have no overlap, one could conclude it is either the back or front. If one have
+two enclosures, once again, it is impossible to tell which backside controller
+belong to which front since the connections could be connected in a arbitrary
+fashion.
